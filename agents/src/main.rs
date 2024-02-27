@@ -1,8 +1,6 @@
 use anyhow::{Context, Error, Result};
 use futures::{future::Either, stream, StreamExt};
-use qdrant_client::qdrant::RetrievedPoint;
 use std::time::Duration;
-use tokio_stream::Stream;
 
 mod agent;
 mod config;
