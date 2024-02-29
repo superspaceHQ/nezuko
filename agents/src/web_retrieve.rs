@@ -1,6 +1,14 @@
-use crate::{agent, db_client, retrieve_answer};
+use crate::agent::agent::Agent;
+use crate::db_client::DbConnect;
+use crate::{
+    agent::{self},
+    db_client, retrieve_answer,
+};
+use axum::Extension;
 use axum::{routing::get, Router};
 use std::net::SocketAddr;
+use std::sync::Arc;
+use tokio_stream::Stream;
 
 use crate::config::Config;
 use agent::llm_gateway;
@@ -15,26 +23,22 @@ use agent::llm_gateway;
 /// Returns a `Result` containing the `SocketAddr` where the server is listening if the server
 /// starts successfully. If an error occurs during server startup or execution, it returns an
 /// `anyhow::Error`.
-
+pub struct AppState {
+    pub db_client: DbConnect, // Assume DbClient is your database client type
+}
 pub async fn start() -> anyhow::Result<SocketAddr> {
     println!("coming here in the start function of retrieval!");
 
-    let configuration = Config::new().unwrap();
-
-    // intialize new llm gateway.
-    let llm_gateway = llm_gateway::Client::new(&configuration.openai_url)
-        .temperature(0.0)
-        .bearer(configuration.openai_key.clone())
-        .model(&configuration.openai_model.clone());
-
     // create new db client.
-    // let db_client = db_client::DbConnect::new()
-    //     .await
-    //     .context("Initiazing database failed.")?;
+    let db_client = db_client::DbConnect::new().await.unwrap();
+    // .context("Initiazing database failed.")?;
+
+    let shared_state = Arc::new(AppState { db_client });
 
     let app = Router::new()
         .route("/", get(hello_world))
-        .route("/retrieve", get(retrieve_answer));
+        .route("/retrieve", get(retrieve_answer))
+        .layer(Extension(shared_state));
 
     let addr = "127.0.0.1:3000".parse().unwrap();
 

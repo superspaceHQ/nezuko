@@ -587,7 +587,7 @@ impl Agent {
 
                 // Construct the extracted content object.
                 let extract_content = ExtractedContent {
-                    path: path.clone(),
+                    path: path.clone().to_owned(),
                     content,
                     start_byte: new_start,
                     end_byte: new_end,
