@@ -4,6 +4,9 @@ use serde::Deserialize;
 
 use core::result::Result::Ok;
 
+mod agent;
+mod config;
+mod db_client;
 mod web_retrieve;
 
 #[derive(Deserialize)]
@@ -24,5 +27,4 @@ async fn retrieve_answer(
 async fn main() {
     println!("Hello, world!");
     web_retrieve::start().await.unwrap();
-    println!("Server running on http://,");
 }

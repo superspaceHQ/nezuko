@@ -1,6 +1,9 @@
-use crate::retrieve_answer;
+use crate::{agent, db_client, retrieve_answer};
 use axum::{routing::get, Router};
 use std::net::SocketAddr;
+
+use crate::config::Config;
+use agent::llm_gateway;
 
 /// Starts the Axum server for retrieval.
 ///
@@ -15,6 +18,20 @@ use std::net::SocketAddr;
 
 pub async fn start() -> anyhow::Result<SocketAddr> {
     println!("coming here in the start function of retrieval!");
+
+    let configuration = Config::new().unwrap();
+
+    // intialize new llm gateway.
+    let llm_gateway = llm_gateway::Client::new(&configuration.openai_url)
+        .temperature(0.0)
+        .bearer(configuration.openai_key.clone())
+        .model(&configuration.openai_model.clone());
+
+    // create new db client.
+    // let db_client = db_client::DbConnect::new()
+    //     .await
+    //     .context("Initiazing database failed.")?;
+
     let app = Router::new()
         .route("/", get(hello_world))
         .route("/retrieve", get(retrieve_answer));
