@@ -135,6 +135,11 @@ async fn retrieve_answer(
         // Optionally, you can add a small delay here to prevent the loop from being too tight.
         tokio::time::sleep(Duration::from_millis(500)).await;
     }
+    agent.complete();
+
+    // Await the spawned task to ensure it has completed.
+    // Though it's not strictly necessary in this context since the task will end on its own when the stream ends.
+    let _ = exchange_handler.await;
 
     Ok(Json(response))
 }
