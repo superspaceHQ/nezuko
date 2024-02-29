@@ -38,7 +38,7 @@ pub async fn start() -> anyhow::Result<SocketAddr> {
     let app = Router::new()
         .route("/", get(hello_world))
         .route("/retrieve", get(retrieve_answer))
-        .layer(Extension(shared_state));
+    // .layer(Extension(shared_state));
 
     let addr = "127.0.0.1:3000".parse().unwrap();
 

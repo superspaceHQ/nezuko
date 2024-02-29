@@ -1,10 +1,10 @@
-use pest::{iterators::Pair, Parser};
-use regex::Regex;
-use smallvec::{smallvec, SmallVec};
-use std::{borrow::Cow, collections::HashSet, mem};
-use serde::{Serialize, Deserialize};
 use crate::parser::languages;
 use crate::search::semantic::SemanticQuery;
+use pest::{iterators::Pair, Parser};
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+use smallvec::{smallvec, SmallVec};
+use std::{borrow::Cow, collections::HashSet, mem};
 
 #[derive(Default, Clone, Debug, PartialEq, Eq)]
 pub struct Query<'a> {
@@ -41,7 +41,6 @@ impl<'a> ParsedQuery<'a> {
         }
     }
 }
-
 
 impl<'a> Query<'a> {
     /// Merge this query with another, overwriting current terms by terms in the new query, if they

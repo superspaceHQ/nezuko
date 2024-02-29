@@ -3,6 +3,7 @@ use axum::{extract::Query, http::StatusCode, Extension, Json};
 use futures::{future::Either, stream, StreamExt};
 use serde::Deserialize;
 use std::time::Duration;
+use tantivy::query;
 use web_retrieve::AppState;
 
 use core::result::Result::Ok;
@@ -11,10 +12,12 @@ use std::sync::Arc;
 mod agent;
 mod config;
 mod db_client;
+mod helpers;
 mod parser;
+mod search;
 mod web_retrieve;
 
-use crate::agent::agent::Action;
+use crate::{agent::agent::Action, search::semantic};
 use agent::{agent::Agent, llm_gateway};
 
 use config::Config;
@@ -27,7 +30,6 @@ struct QueryParams {
 
 async fn retrieve_answer(
     Query(params): Query<QueryParams>,
-    Extension(state): Extension<Arc<AppState>>,
 ) -> Result<Json<String>, (StatusCode, String)> {
     // Implement your logic here. For now, we're just echoing back the query.
 
@@ -35,26 +37,41 @@ async fn retrieve_answer(
 
     let configuration = Config::new().unwrap();
 
-    let query: String = params.query.clone();
+    // Bind the owned string to a variable
+    let query = params.query;
+    // println!("owned_query {:?}", owned_query);
+
+    // let semantic_query = semantic::SemanticQuery::new(query);
 
     // TODO :: SHANKAR ADD PARSER FOR QUERY WITH PROPER TYPE
 
-    // let query = match parser::parser::parse_nl(&q) {
+    // let query = match parser::parser::parse_nl(&owned_query.query) {
     //     Ok(parsed_query) => {
     //         // Handle successful parsing
-    //         Ok(Json(response)) // Or use parsed_query as needed
+    //         parsed_query.into_semantic().context("got a 'Grep' query")
     //     }
     //     Err(e) => {
     //         // Convert parsing error to your function's error type
-    //         let error_message = format!("Error parsing query: {:?}", e);
-    //         Err((StatusCode::BAD_REQUEST, error_message))
+    //         panic!("Error parsing query: {:?}", e);
+    //         // Err((StatusCode::BAD_REQUEST, error_message))
     //     }
     // };
-    // let query = parser::parser::parse_nl(&q)
-    //     .context("parse error")?
-    //     .into_semantic()
-    //     .context("got a 'Grep' query")?
-    //     .into_owned();
+
+    // let query_target: Result<String, String> = match query {
+    //     Ok(q) => {
+    //         match q.target.as_ref() {
+    //             Some(target) => {
+    //                 match target.as_plain() {
+    //                     Some(plain) => Ok(plain.clone().into_owned()), // Assuming plain is a reference that needs to be owned
+    //                     None => Err("The target is not in plain format.".to_string()),
+    //                 }
+    //             }
+    //             None => Err("Target was not found in the query.".to_string()),
+    //         }
+    //     }
+    //     Err(e) => Err(format!("Error parsing query: {:?}", e)),
+    // };
+
     // let query_target = query
     //     .unwrap()
     //     .target
@@ -66,12 +83,15 @@ async fn retrieve_answer(
     //     .into_owned();
 
     println!("{:?}", query);
+    let new_query = query.clone();
 
     let mut action = Action::Query(query);
 
     let id = uuid::Uuid::new_v4();
 
-    let mut exchanges = vec![agent::exchange::Exchange::new(id, params.query.clone())];
+    let mut exchanges = vec![agent::exchange::Exchange::new(id, new_query)];
+
+    let db_client = db_client::DbConnect::new().await.unwrap();
 
     // intialize new llm gateway.
     let llm_gateway = llm_gateway::Client::new(&configuration.openai_url)
@@ -82,7 +102,7 @@ async fn retrieve_answer(
     let (exchange_tx, exchange_rx) = tokio::sync::mpsc::channel(10);
 
     let mut agent: Agent = Agent {
-        db: state.db_client,
+        db: db_client, // Clone the Arc here,
         exchange_tx,
         exchanges,
         llm_gateway,
@@ -147,5 +167,10 @@ async fn retrieve_answer(
 #[tokio::main]
 async fn main() {
     println!("Hello, world!");
+
+    // let db_client = db_client::DbConnect::new()
+    //     .await
+    //     .context("Initiazing database failed.");
+
     web_retrieve::start().await.unwrap();
 }

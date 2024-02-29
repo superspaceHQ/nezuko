@@ -36,18 +36,18 @@ impl Agent {
         let is_semantic = paths.is_empty();
 
         // If there are no lexical results, perform a semantic search.
-        if paths.is_empty() {
-            let semantic_paths = self
-                .semantic_search(query.into(), 30, 0, 0.0, true)
-                .await?
-                .into_iter()
-                .map(|chunk| chunk.relative_path)
-                .collect::<HashSet<_>>()
-                .into_iter()
-                .collect();
+        // if paths.is_empty() {
+        //     let semantic_paths = self
+        //         .semantic_search(query.into(), 30, 0, 0.0, true)
+        //         .await?
+        //         .into_iter()
+        //         .map(|chunk| chunk.relative_path)
+        //         .collect::<HashSet<_>>()
+        //         .into_iter()
+        //         .collect();
 
-            paths = semantic_paths;
-        }
+        //     paths = semantic_paths;
+        // }
 
         let mut paths = paths
             .iter()

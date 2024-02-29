@@ -35,7 +35,7 @@ pub struct Exchange {
 }
 
 impl Exchange {
-    pub fn new(id: uuid::Uuid, query: SemanticQuery<'static>) -> Self {
+    pub fn new(id: uuid::Uuid, query: String) -> Self {
         // generate new uuid
 
         Self {
