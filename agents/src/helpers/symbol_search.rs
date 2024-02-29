@@ -30,12 +30,16 @@ pub async fn symbol_search(query: &str) -> Result<Vec<SymbolCodeChunk>, Box<dyn 
     let client = reqwest::Client::new();
     let url = format!("{}/symbols", base_url);
 
+    println!("shankar: {:?},{},{}", url, query, namespace);
+
     let response = client
         .post(&url)
         .header("Content-Type", "application/json")
         .json(&json!({ "query": query, "repo_name": namespace }))
         .send()
         .await?;
+
+    println!("shankareeeee: {:?}", response);
 
     if response.status() != reqwest::StatusCode::OK {
         return Err(Box::new(std::io::Error::new(

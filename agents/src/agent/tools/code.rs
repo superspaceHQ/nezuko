@@ -23,8 +23,14 @@ impl Agent {
 
         let results_symbol = symbol_search(query).await;
 
-        let code_snippet = results_symbol.unwrap();
-
+        let code_snippet = match results_symbol {
+            Ok(snippet) => snippet,
+            Err(e) => {
+                println!("Error encountered: {}", e);
+                // If you still want to panic after printing the error:
+                panic!("Failed due to error: {}", e);
+            }
+        };
         // println!("Size of semantic search: {}", results.len());
 
         let mut code_chunks = code_snippet
