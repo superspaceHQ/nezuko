@@ -1,7 +1,11 @@
 use std::path::PathBuf;
 
 use tree_sitter_stack_graphs::{
-    cli::index::IndexArgs,
+    cli::{
+        index::IndexArgs,
+        query::{Definition, QueryArgs, Target},
+        util::SourcePosition,
+    },
     loader::{LanguageConfiguration, Loader},
     NoCancellation,
 };
@@ -12,6 +16,18 @@ fn get_language_configurations(language: &str) -> Vec<LanguageConfiguration> {
         "Python" => vec![language_configuration(&NoCancellation)],
         _ => vec![],
     }
+}
+
+fn get_sqlite_path() -> PathBuf {
+    let current_dir = match std::env::current_dir() {
+        Ok(path) => path,
+        Err(e) => {
+            println!("Error getting the current directory: {}", e);
+            std::process::exit(1);
+        }
+    };
+    let directory = current_dir.parent().unwrap_or(&current_dir);
+    directory.join(format!("{}.sqlite", env!("CARGO_PKG_NAME")))
 }
 
 pub fn index_files(files: Vec<PathBuf>, language: &str) -> Result<(), anyhow::Error> {
@@ -28,18 +44,7 @@ pub fn index_files(files: Vec<PathBuf>, language: &str) -> Result<(), anyhow::Er
         force: true,
     };
 
-    // Specify the default database path (adjust as necessary)
-    let directory = match std::env::current_dir() {
-        Ok(path) => path,
-        Err(e) => {
-            println!("Error getting the current directory: {}", e);
-            PathBuf::new()
-        }
-    };
-    let default_db_path = directory
-        .join(format!("{}.sqlite", env!("CARGO_PKG_NAME")))
-        .to_path_buf();
-
+    let default_db_path = get_sqlite_path();
     let loader = Loader::from_language_configurations(language_configurations, None)
         .expect("Expected loader");
 
@@ -48,6 +53,27 @@ pub fn index_files(files: Vec<PathBuf>, language: &str) -> Result<(), anyhow::Er
         default_db_path.display()
     );
 
-    // Now, run the indexing process
     index_args.run(&default_db_path, loader)
+}
+
+pub fn find_definition(file: PathBuf, line: u32, column: u32) -> Result<(), anyhow::Error> {
+    let source_positions = vec![SourcePosition {
+        path: file,
+        line: line.try_into().unwrap(),
+        column: column.try_into().unwrap(),
+    }];
+
+    let query_args = QueryArgs {
+        wait_at_start: false,
+        stats: true,
+        target: Target::Definition(Definition {
+            references: source_positions,
+        }),
+    };
+
+    let db_path = get_sqlite_path();
+
+    log::info!("Looking for definitions inside {} \n", db_path.display());
+
+    query_args.run(&db_path)
 }

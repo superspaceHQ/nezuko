@@ -627,6 +627,12 @@ impl Repository {
 
         // Creating the stack graph for the supported files
         let _ = stack_graph::graph::index_files(supported_files.into_iter().collect(), "Python");
+        let _ = stack_graph::graph::find_definition(
+            "/Users/tekkie/Projects/superspace/mikasaa/repo/aider/aider/coders/base_coder.py"
+                .into(),
+            367,
+            21,
+        );
 
         //stopping the logging time for qdrant indexing
         let duration_processsing = start_processing.elapsed();
