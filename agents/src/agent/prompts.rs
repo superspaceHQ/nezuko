@@ -363,11 +363,12 @@ pub fn question_generator_prompt(issue_desc: &str, repo_name: &str) -> String {
         r#"#####
 
         You are a Tool  that take issue description for developer task and extract query out of to do semantic search on codebase to find relevant codes to change.
+
             
         Your job is to perform the following tasks:
         - Read the issue description and generate multiple query but should hold same meaning, but potentially using different keywords or phrasing.
         - If the issue description is something like \"As soon as I click on all repos, prompt guide or any button - history gets opened even if i have closed it. every action like new chat, etc gets the history opened. It should not do so\" or related  transform it to  \"["What causes the history to open when clicking on buttons?", "Why does every action trigger the history to open?", "How to prevent the history from opening with each action?"]\"
-        - DO NOT CHANGE MEANING OF THE QUERY
+        - DO NOT CHANGE MEANING OF THE QUERY - just change the keywords or the phrasing.
         - RETURN ARRAY CONTAINING THREE Generated QUERIES 
 
 
