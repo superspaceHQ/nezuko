@@ -7,6 +7,8 @@ use crate::AppState;
 use agent::llm_gateway;
 use futures::StreamExt;
 use log::{error, info};
+use serde_json::Value;
+use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::agent::agent::Action;
@@ -178,6 +180,20 @@ pub async fn generate_question_array(
     let choices = final_response.choices[0].clone();
 
     let response_message = choices.message.content.unwrap();
+    let questions: Vec<String> = serde_json::from_str(&response_message).unwrap();
+    let mut results: HashMap<String, String> = HashMap::new();
+
+    for question in questions {
+        let response = call_second_api(&question).await?;
+        results.insert(question, response);
+    }
+    let url = format!(
+        "http://localhost:3001/retrieve-code?repo_name={}&question={}",
+        repo_name, "shankar"
+    );
+    let client = reqwest::Client::new();
+
+    let response = client.get(url).send().await?.json::<Value>().await?;
 
     println!("Response: {}", response_message);
 

@@ -1,27 +1,37 @@
-extern crate common;
+use common::CodeSpanRequest;
+
 use common::CodeSpanRequest;
 
 use std::convert::Infallible;
 use std::sync::Arc;
 use warp::{self, Filter};
 
-use crate::controller::{symbol, span, parentscope};
+use crate::controller::{parentscope, span, symbol};
 use crate::db::DbConnect;
 use crate::graph::symbol_ops;
-use crate::models::{SymbolSearchRequest, ParentScopeRequest};
+use crate::models::{ParentScopeRequest, SymbolSearchRequest};
 use crate::AppState;
 
 use serde::Deserialize;
 
-pub fn search_routes(app_state: Arc<AppState>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    symbol_search(app_state.clone()).or(span_code_chunk_retrieve(app_state.clone())).or(parent_scope_retrieve(app_state.clone()))
+pub fn search_routes(
+    app_state: Arc<AppState>,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    symbol_search(app_state.clone())
+        .or(span_code_chunk_retrieve(app_state.clone()))
+        .or(parent_scope_retrieve(app_state.clone()))
 }
 
 /// POST /symbols
-fn symbol_search(app_state: Arc<AppState>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+fn symbol_search(
+    app_state: Arc<AppState>,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path("symbols")
         .and(warp::post())
-        .and(warp::body::content_length_limit(1024 * 16).and(warp::body::json::<SymbolSearchRequest>()))
+        .and(
+            warp::body::content_length_limit(1024 * 16)
+                .and(warp::body::json::<SymbolSearchRequest>()),
+        )
         .and(warp::any().map(move || app_state.clone()))
         .and_then(symbol::symbol_search)
 }
@@ -29,7 +39,7 @@ fn symbol_search(app_state: Arc<AppState>) -> impl Filter<Extract = impl warp::R
 /// Handles the GET request for retrieving code chunks for given  spans (code range ex: line 15..35) within a repository's specific file and, optionally, a specific branch.
 ///
 /// This endpoint listens for GET requests at the "/span" path and expects query parameters
-/// encapsulated in the `SpanSearchRequest` struct. 
+/// encapsulated in the `SpanSearchRequest` struct.
 ///
 /// # Request Parameters
 /// - `repo`: The name of the repository to search within. This parameter is required.
@@ -43,8 +53,9 @@ fn symbol_search(app_state: Arc<AppState>) -> impl Filter<Extract = impl warp::R
 /// - Returns a `warp::Rejection` in case of errors or if the search criteria are not met.
 /// curl "<http://example.com/span?repo=example-repo&branch=main&path=src/example.js&range=1:5&id=12345>"
 
-
-fn span_code_chunk_retrieve(app_state: Arc<AppState>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+fn span_code_chunk_retrieve(
+    app_state: Arc<AppState>,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path("span")
         .and(warp::get())
         .and(warp::query::<CodeSpanRequest>())
@@ -68,7 +79,9 @@ fn span_code_chunk_retrieve(app_state: Arc<AppState>) -> impl Filter<Extract = i
 /// # Responses
 /// - Returns a `warp::Reply` on success, containing the parent scope code.
 /// - Returns a `warp::Rejection` in case of errors or if the request parameters are invalid.
-fn parent_scope_retrieve(app_state: Arc<AppState>) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+fn parent_scope_retrieve(
+    app_state: Arc<AppState>,
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     warp::path("parentscope")
         .and(warp::get())
         .and(warp::query::<ParentScopeRequest>())
