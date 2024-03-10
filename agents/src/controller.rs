@@ -27,9 +27,6 @@ pub async fn handle_retrieve_code(
 ) -> Result<impl warp::Reply, Infallible> {
     info!("Query: {}, Repo: {}", req.query, req.repo);
 
-    // Combine query and repo_name in the response
-    let response = format!("Query: '{}', Repo: '{}'", req.query, req.repo);
-
     // if query or repo is empty, return bad request.
     if req.query.is_empty() || req.repo.is_empty() {
         error!("Query or Repo from the user request is empty");
@@ -39,10 +36,8 @@ pub async fn handle_retrieve_code(
         ));
     }
 
-    // parse the query
-    let query_clone = req.query.clone();
     let parsed_query = parse_query(req.query.clone());
-    // if the query is not parsed, return internal server error.
+
     if parsed_query.is_err() {
         error!("Error parsing the query");
         return Ok(warp::reply::with_status(
@@ -53,7 +48,6 @@ pub async fn handle_retrieve_code(
 
     let parsed_query = parsed_query.unwrap();
     let query_target = parse_query_target(&parsed_query);
-    // if the query target is not parsed, return internal server error.
     if query_target.is_err() {
         error!("Error parsing the query target");
         return Ok(warp::reply::with_status(

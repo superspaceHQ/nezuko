@@ -8,6 +8,7 @@ use bincode::config;
 use compact_str::CompactString;
 use futures::future;
 use log::{error, info};
+use rand::seq::index;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
@@ -176,7 +177,9 @@ impl DbConnect {
         let configuration = Config::new().unwrap();
         let base_url = configuration.quickwit_url.clone();
 
-        info!("search_query {}", search_query);
+        println!("shankar index_name: {},{}", search_query, index_name);
+
+        info!("search_query {},{}", search_query, index_name);
 
         let query = if !search_field.is_empty() {
             format!("{}:{}", search_field, search_query)
@@ -192,6 +195,8 @@ impl DbConnect {
         let json_string = serde_json::to_string(&json_data).expect("Failed to serialize object");
 
         let url = format!("{}/api/v1/{}/search", base_url, index_name);
+
+        println!("shankar url: {}", url);
 
         let response = client
             .post(url)
@@ -236,6 +241,7 @@ impl DbConnect {
         search_field: &str,
         token: CompactString,
     ) -> Result<Vec<FileDocument>, Error> {
+        println!("coming here search with async: {}", token.as_str());
         let result = self
             .search_api(index_name, search_field, token.as_str())
             .await?;
@@ -253,6 +259,11 @@ impl DbConnect {
         limit: usize,
     ) -> impl Iterator<Item = FileDocument> {
         let mut counts: HashMap<FileDocument, usize> = HashMap::new();
+
+        println!(
+            "comig here in fuzzy path match: {},{}",
+            search_query, index_name
+        );
 
         let hits = trigrams(search_query)
             .flat_map(|s| case_permutations(s.as_str()))

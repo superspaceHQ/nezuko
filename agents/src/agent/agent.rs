@@ -216,7 +216,7 @@ impl Agent {
         ))];
         history.extend(self.history()?);
 
-        println!("full history:\n {:?}", history);
+        // println!("full history:\n {:?}", history);
 
         let trimmed_history = trim_history(history.clone())?;
 
