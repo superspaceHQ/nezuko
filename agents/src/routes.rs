@@ -65,3 +65,10 @@ fn question_list() -> impl Filter<Extract = impl warp::Reply, Error = warp::Reje
         .and(warp::body::json())
         .and_then(controller::generate_question_array)
 }
+
+fn central_orc() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    warp::path("central-orc")
+        .and(warp::post())
+        .and(warp::body::json())
+        .and_then(controller::central_orchestation)
+}

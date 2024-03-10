@@ -7,6 +7,9 @@ use crate::AppState;
 use agent::llm_gateway;
 use futures::StreamExt;
 use log::{error, info};
+use regex_syntax::ast::print;
+use reqwest::Error;
+use serde::Serialize;
 use std::time::Duration;
 
 use crate::agent::agent::Action;
@@ -123,7 +126,7 @@ pub async fn handle_retrieve_code(
     ))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 
 pub struct GenerateQuestionRequest {
     pub issue_desc: String,
@@ -175,6 +178,42 @@ pub async fn generate_question_array(
 
     println!("Response: {}", response_message);
 
+    Ok(warp::reply::with_status(
+        warp::reply::json(&response_message),
+        StatusCode::OK,
+    ))
+}
+
+pub async fn central_orchestation(
+    req: GenerateQuestionRequest,
+) -> Result<impl warp::Reply, Infallible> {
+    // info!("Query: {}, Repo: {}", req.issue_desc, req.repo);
+
+    let question_generation_url = "http://localhost:3001/question-list";
+
+    let body = GenerateQuestionRequest {
+        issue_desc: req.issue_desc,
+        repo_name: req.repo_name,
+    };
+    let json_string = serde_json::to_string(&body).expect("Failed to serialize object");
+
+    let client = reqwest::Client::new();
+    let response = client
+        .post(question_generation_url)
+        .body(json_string)
+        .send()
+        .await
+        .unwrap();
+
+    // Assuming the response is JSON and can be deserialized into ApiResponse
+    if response.status().is_success() {
+        // let api_response = response.json().await.unwrap();
+        // println!("Question list: {}", response.text().await.unwrap());
+        let api_response = response.text().await.unwrap();
+        println!("Question list: {}", api_response);
+    }
+
+    let response_message = "Successfully Done all the steps";
     Ok(warp::reply::with_status(
         warp::reply::json(&response_message),
         StatusCode::OK,
