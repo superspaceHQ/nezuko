@@ -11,6 +11,7 @@ pub fn code_retrieve(
     home_route()
         .or(retrieve_code(app_state.clone()))
         .or(question_list())
+        .or(central_orc())
 }
 
 #[derive(Deserialize)]

@@ -10,6 +10,7 @@ use log::{error, info};
 use regex_syntax::ast::print;
 use reqwest::Error;
 use serde::Serialize;
+use std::any;
 use std::time::Duration;
 
 use crate::agent::agent::Action;
@@ -207,10 +208,27 @@ pub async fn central_orchestation(
 
     // Assuming the response is JSON and can be deserialized into ApiResponse
     if response.status().is_success() {
-        // let api_response = response.json().await.unwrap();
-        // println!("Question list: {}", response.text().await.unwrap());
-        let api_response = response.text().await.unwrap();
-        println!("Question list: {}", api_response);
+        let data = response.json.await;
+
+        println!("Respoasdfnse: {:?}", data);
+        // match response.json::<Vec<String>>().await {
+        //     Ok(questions) => {
+        //         // Iterate over the questions
+        //         for question in questions {
+        //             println!("question sequ3{}", question);
+        //         }
+        //     }
+        //     Err(_) => {
+        //         // Handle JSON deserialization error
+        //         // Since we cannot propagate errors up, you may log or handle it as needed here
+        //         println!("Failed to deserialize response");
+        //     }
+        // }
+
+        // Iterate over the items
+        // for item in items {
+        //     println!("Name: {}", item);
+        // }
     }
 
     let response_message = "Successfully Done all the steps";
