@@ -12,9 +12,9 @@ clients:
 
   # See https://platform.openai.com/docs/quickstart
   - type: openai
-    api_key: sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    api_key: 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
     api_base: https://api.openai.com/v1 # Optional field
-    organization_id: org-xxxxxxxxxxxxxxxxxxxxxxxx # Optional field
+    organization_id: org-odlrlnNubQrQ9cIcitKaVyxe # Optional field
 
   # See https://ai.google.dev/docs
   - type: gemini

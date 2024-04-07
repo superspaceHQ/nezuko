@@ -213,6 +213,7 @@ impl Agent {
         let mut history = vec![llm_gateway::api::Message::system(&prompts::system(
             self.paths(),
         ))];
+        
         history.extend(self.history()?);
 
         println!("full history:\n {:?}", history);

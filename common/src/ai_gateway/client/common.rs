@@ -1,3 +1,4 @@
+use super::Functions;
 use super::{openai::OpenAIConfig, ClientConfig, Message, MessageContent, Model};
 use crate::ai_gateway::utils::{init_tokio_runtime, AbortSignal};
 use std::{env, future::Future, time::Duration};
@@ -165,6 +166,7 @@ macro_rules! openai_compatible_client {
                 client: &reqwest::Client,
                 data: $crate::ai_gateway::client::SendData,
             ) -> anyhow::Result<String> {
+                // Look here as well
                 let builder = self.request_builder(client, data)?;
                 $crate::ai_gateway::client::openai::openai_send_message(builder).await
             }
@@ -231,9 +233,10 @@ pub trait Client: Send + Sync {
         // Ensure `build_client` and `prepare_send_data` do not block.
         let client = self.build_client()?;
         let data = global_config.prepare_send_data(&input, false)?;
-    
+
         // Directly await the async operation.
-        self.send_message_inner(&client, data).await
+        self.send_message_inner(&client, data)
+            .await
             .with_context(|| "Failed to get answer")
     }
 
@@ -291,7 +294,9 @@ pub struct ExtraConfig {
 
 #[derive(Debug)]
 pub struct SendData {
+    // Add another field called functions, which will take vector of function. This can be optional in nature
     pub messages: Vec<Message>,
+    pub functions: Option<Functions>,
     pub temperature: Option<f64>,
     pub stream: bool,
 }
