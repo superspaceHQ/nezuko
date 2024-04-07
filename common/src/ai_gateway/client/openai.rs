@@ -140,6 +140,7 @@ pub fn openai_build_body(data: SendData, model: String) -> Value {
     let mut body = json!({
         "model": model,
         "messages": messages,
+        // Functions need to be added here
     });
 
     // The default max_tokens of gpt-4-vision-preview is only 16, we need to make it larger

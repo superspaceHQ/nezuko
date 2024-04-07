@@ -30,6 +30,8 @@ pub struct ChatCompletion {
     // Include other fields you need here
 }
 
+// Above three structs are from the perspective of response
+
 pub mod api {
     use std::collections::HashMap;
 
